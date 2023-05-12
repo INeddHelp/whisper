@@ -196,7 +196,8 @@ class EnglishNumberNormalizer:
             if re.match(r"^\d+(\.\d+)?$", current_without_prefix):
                 # arabic numbers (potentially with signs and fractions)
                 f = to_fraction(current_without_prefix)
-                assert f is not None
+                if f is None:
+                    raise AssertionError
                 if value is not None:
                     if isinstance(value, str) and value.endswith("."):
                         # concatenate decimals / ip address components
@@ -226,7 +227,8 @@ class EnglishNumberNormalizer:
                     if (
                         prev in self.tens and ones < 10
                     ):  # replace the last zero with the digit
-                        assert value[-1] == "0"
+                        if value[-1] != "0":
+                            raise AssertionError
                         value = value[:-1] + str(ones)
                     else:
                         value = str(value) + str(ones)
@@ -247,7 +249,8 @@ class EnglishNumberNormalizer:
                     yield output(str(ones) + suffix)
                 elif isinstance(value, str) or prev in self.ones:
                     if prev in self.tens and ones < 10:
-                        assert value[-1] == "0"
+                        if value[-1] != "0":
+                            raise AssertionError
                         yield output(value[:-1] + str(ones) + suffix)
                     else:
                         yield output(str(value) + str(ones) + suffix)

@@ -22,7 +22,8 @@ else:
 
 
 def exact_div(x, y):
-    assert x % y == 0
+    if x % y != 0:
+        raise AssertionError
     return x // y
 
 
@@ -50,7 +51,8 @@ def compression_ratio(text) -> float:
 def format_timestamp(
     seconds: float, always_include_hours: bool = False, decimal_marker: str = "."
 ):
-    assert seconds >= 0, "non-negative timestamp expected"
+    if seconds < 0:
+        raise AssertionError("non-negative timestamp expected")
     milliseconds = round(seconds * 1000.0)
 
     hours = milliseconds // 3_600_000
