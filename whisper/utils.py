@@ -32,7 +32,8 @@ def str2bool(string):
     if string in str2val:
         return str2val[string]
     else:
-        raise ValueError(f"Expected one of {set(str2val.keys())}, got {string}")
+        raise ValueError(
+            f"Expected one of {set(str2val.keys())}, got {string}")
 
 
 def optional_int(string):
@@ -120,7 +121,8 @@ class SubtitlesWriter(ResultWriter):
                     timing = original_timing.copy()
                     long_pause = not preserve_segments and timing["start"] - last > 3.0
                     has_room = line_len + len(timing["word"]) <= max_line_width
-                    seg_break = i == 0 and len(subtitle) > 0 and preserve_segments
+                    seg_break = i == 0 and len(
+                        subtitle) > 0 and preserve_segments
                     if line_len > 0 and has_room and not long_pause and not seg_break:
                         # line continuation
                         line_len += len(timing["word"])
@@ -227,7 +229,8 @@ class WriteTSV(ResultWriter):
         for segment in result["segments"]:
             print(round(1000 * segment["start"]), file=file, end="\t")
             print(round(1000 * segment["end"]), file=file, end="\t")
-            print(segment["text"].strip().replace("\t", " "), file=file, flush=True)
+            print(segment["text"].strip().replace(
+                "\t", " "), file=file, flush=True)
 
 
 class WriteJSON(ResultWriter):

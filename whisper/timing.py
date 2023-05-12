@@ -27,9 +27,7 @@ def median_filter(x: torch.Tensor, filter_width: int):
         # `F.pad` does not support 1D or 2D inputs for reflect padding but supports 3D and 4D
         x = x[None, None, :]
 
-    if not (
-        filter_width > 0 and filter_width % 2 == 1
-    ):
+    if not (filter_width > 0 and filter_width % 2 == 1):
         raise AssertionError("`filter_width` should be an odd number")
 
     result = None
@@ -47,7 +45,8 @@ def median_filter(x: torch.Tensor, filter_width: int):
 
     if result is None:
         # sort() is faster than torch.median (https://github.com/pytorch/pytorch/issues/51450)
-        result = x.unfold(-1, filter_width, 1).sort()[0][..., filter_width // 2]
+        result = x.unfold(-1, filter_width,
+                          1).sort()[0][..., filter_width // 2]
 
     if ndim <= 2:
         result = result[0, 0]
@@ -114,7 +113,8 @@ def dtw_cuda(x, BLOCK_SIZE=1024):
         raise AssertionError(f"M should be smaller than {BLOCK_SIZE=}")
 
     x_skew = (
-        F.pad(x, (0, M + 1), value=np.inf).flatten()[: M * (N + M)].reshape(M, N + M)
+        F.pad(x, (0, M + 1),
+              value=np.inf).flatten()[: M * (N + M)].reshape(M, N + M)
     )
     x_skew = x_skew.T.contiguous()
     cost = torch.ones(N + M + 2, M + 2) * np.inf
@@ -195,16 +195,18 @@ def find_alignment(
 
     with torch.no_grad():
         logits = model(mel.unsqueeze(0), tokens.unsqueeze(0))[0]
-        sampled_logits = logits[len(tokenizer.sot_sequence) :, : tokenizer.eot]
+        sampled_logits = logits[len(tokenizer.sot_sequence):, : tokenizer.eot]
         token_probs = sampled_logits.softmax(dim=-1)
-        text_token_probs = token_probs[np.arange(len(text_tokens)), text_tokens]
+        text_token_probs = token_probs[np.arange(
+            len(text_tokens)), text_tokens]
         text_token_probs = text_token_probs.tolist()
 
     for hook in hooks:
         hook.remove()
 
     # heads * tokens * frames
-    weights = torch.stack([QKs[l][h] for l, h in model.alignment_heads.indices().T])
+    weights = torch.stack([QKs[l][h]
+                          for l, h in model.alignment_heads.indices().T])
     weights = weights[:, :, : num_frames // 2]
     weights = (weights * qk_scale).softmax(dim=-1)
     std, mean = torch.std_mean(weights, dim=-2, keepdim=True, unbiased=False)
@@ -212,13 +214,16 @@ def find_alignment(
     weights = median_filter(weights, medfilt_width)
 
     matrix = weights.mean(axis=0)
-    matrix = matrix[len(tokenizer.sot_sequence) : -1]
+    matrix = matrix[len(tokenizer.sot_sequence): -1]
     text_indices, time_indices = dtw(-matrix)
 
-    words, word_tokens = tokenizer.split_to_word_tokens(text_tokens + [tokenizer.eot])
-    word_boundaries = np.pad(np.cumsum([len(t) for t in word_tokens[:-1]]), (1, 0))
+    words, word_tokens = tokenizer.split_to_word_tokens(
+        text_tokens + [tokenizer.eot])
+    word_boundaries = np.pad(
+        np.cumsum([len(t) for t in word_tokens[:-1]]), (1, 0))
 
-    jumps = np.pad(np.diff(text_indices), (1, 0), constant_values=1).astype(bool)
+    jumps = np.pad(np.diff(text_indices), (1, 0),
+                   constant_values=1).astype(bool)
     jump_times = time_indices[jumps] / TOKENS_PER_SECOND
     start_times = jump_times[word_boundaries[:-1]]
     end_times = jump_times[word_boundaries[1:]]
@@ -311,7 +316,8 @@ def add_word_timestamps(
     ]
 
     text_tokens = list(itertools.chain.from_iterable(text_tokens_per_segment))
-    alignment = find_alignment(model, tokenizer, text_tokens, mel, num_frames, **kwargs)
+    alignment = find_alignment(
+        model, tokenizer, text_tokens, mel, num_frames, **kwargs)
     merge_punctuations(alignment, prepend_punctuations, append_punctuations)
 
     time_offset = segments[0]["seek"] * HOP_LENGTH / SAMPLE_RATE
