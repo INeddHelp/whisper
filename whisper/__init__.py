@@ -7,6 +7,7 @@ from typing import List, Optional, Union
 
 import torch
 from tqdm import tqdm
+
 from .model import ModelDimensions, Whisper
 from .version import __version__
 
@@ -48,7 +49,8 @@ def _download(url: str, root: str, in_memory: bool) -> Union[bytes, str]:
     download_target = os.path.join(root, os.path.basename(url))
 
     if os.path.exists(download_target) and not os.path.isfile(download_target):
-        raise RuntimeError(f"{download_target} exists and is not a regular file")
+        raise RuntimeError(
+            f"{download_target} exists and is not a regular file")
 
     if os.path.isfile(download_target):
         with open(download_target, "rb") as f:
@@ -121,7 +123,8 @@ def load_model(
         device = "cuda" if torch.cuda.is_available() else "cpu"
     if download_root is None:
         default = os.path.join(os.path.expanduser("~"), ".cache")
-        download_root = os.path.join(os.getenv("XDG_CACHE_HOME", default), "whisper")
+        download_root = os.path.join(
+            os.getenv("XDG_CACHE_HOME", default), "whisper")
 
     if name in _MODELS:
         checkpoint_file = _download(_MODELS[name], download_root, in_memory)
@@ -135,7 +138,8 @@ def load_model(
         )
 
     with (
-        io.BytesIO(checkpoint_file) if in_memory else open(checkpoint_file, "rb")
+        io.BytesIO(checkpoint_file) if in_memory else open(
+            checkpoint_file, "rb")
     ) as fp:
         checkpoint = torch.load(fp, map_location=device)
     del checkpoint_file
