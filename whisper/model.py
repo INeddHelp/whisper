@@ -54,8 +54,10 @@ def sinusoids(length, channels, max_timescale=10000):
     """Returns sinusoids for positional embedding"""
     assert channels % 2 == 0
     log_timescale_increment = np.log(max_timescale) / (channels // 2 - 1)
-    inv_timescales = torch.exp(-log_timescale_increment * torch.arange(channels // 2))
-    scaled_time = torch.arange(length)[:, np.newaxis] * inv_timescales[np.newaxis, :]
+    inv_timescales = torch.exp(-log_timescale_increment *
+                               torch.arange(channels // 2))
+    scaled_time = torch.arange(
+        length)[:, np.newaxis] * inv_timescales[np.newaxis, :]
     return torch.cat([torch.sin(scaled_time), torch.cos(scaled_time)], dim=1)
 
 
@@ -135,7 +137,8 @@ class ResidualAttentionBlock(nn.Module):
     ):
         x = x + self.attn(self.attn_ln(x), mask=mask, kv_cache=kv_cache)[0]
         if self.cross_attn:
-            x = x + self.cross_attn(self.cross_attn_ln(x), xa, kv_cache=kv_cache)[0]
+            x = x + self.cross_attn(self.cross_attn_ln(x),
+                                    xa, kv_cache=kv_cache)[0]
         x = x + self.mlp(self.mlp_ln(x))
         return x
 
@@ -146,7 +149,8 @@ class AudioEncoder(nn.Module):
     ):
         super().__init__()
         self.conv1 = Conv1d(n_mels, n_state, kernel_size=3, padding=1)
-        self.conv2 = Conv1d(n_state, n_state, kernel_size=3, stride=2, padding=1)
+        self.conv2 = Conv1d(n_state, n_state, kernel_size=3,
+                            stride=2, padding=1)
         self.register_buffer("positional_embedding", sinusoids(n_ctx, n_state))
 
         self.blocks: Iterable[ResidualAttentionBlock] = nn.ModuleList(
@@ -203,7 +207,7 @@ class TextDecoder(nn.Module):
         offset = next(iter(kv_cache.values())).shape[1] if kv_cache else 0
         x = (
             self.token_embedding(x)
-            + self.positional_embedding[offset : offset + x.shape[-1]]
+            + self.positional_embedding[offset: offset + x.shape[-1]]
         )
         x = x.to(xa.dtype)
 
@@ -240,8 +244,9 @@ class Whisper(nn.Module):
         all_heads = torch.zeros(
             self.dims.n_text_layer, self.dims.n_text_head, dtype=torch.bool
         )
-        all_heads[self.dims.n_text_layer // 2 :] = True
-        self.register_buffer("alignment_heads", all_heads.to_sparse(), persistent=False)
+        all_heads[self.dims.n_text_layer // 2:] = True
+        self.register_buffer(
+            "alignment_heads", all_heads.to_sparse(), persistent=False)
 
     def set_alignment_heads(self, dump: bytes):
         array = np.frombuffer(
@@ -250,7 +255,8 @@ class Whisper(nn.Module):
         mask = torch.from_numpy(array).reshape(
             self.dims.n_text_layer, self.dims.n_text_head
         )
-        self.register_buffer("alignment_heads", mask.to_sparse(), persistent=False)
+        self.register_buffer(
+            "alignment_heads", mask.to_sparse(), persistent=False)
 
     def embed_audio(self, mel: torch.Tensor):
         return self.encoder(mel)
@@ -293,7 +299,8 @@ class Whisper(nn.Module):
                 # save as-is, for the first token or cross attention
                 cache[module] = output
             else:
-                cache[module] = torch.cat([cache[module], output], dim=1).detach()
+                cache[module] = torch.cat(
+                    [cache[module], output], dim=1).detach()
             return cache[module]
 
         def install_hooks(layer: nn.Module):

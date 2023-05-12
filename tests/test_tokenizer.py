@@ -21,4 +21,5 @@ def test_split_on_unicode():
     words, word_tokens = multilingual_tokenizer.split_tokens_on_unicode(tokens)
 
     assert words == [" elle", " est", " l", "'", "�", "é", "rit", "oire"]
-    assert word_tokens == [[8404], [871], [287], [6], [246], [526], [3210], [20378]]
+    assert word_tokens == [[8404], [871], [287],
+                           [6], [246], [526], [3210], [20378]]

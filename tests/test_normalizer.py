@@ -31,7 +31,8 @@ def test_number_normalizer(std):
 
     assert std("nineteen fifties") == "1950s"
     assert std("thirty first") == "31st"
-    assert std("thirty three thousand and three hundred and thirty third") == "33333rd"
+    assert std(
+        "thirty three thousand and three hundred and thirty third") == "33333rd"
 
     assert std("three billion") == "3000000000"
     assert std("millions") == "1000000s"

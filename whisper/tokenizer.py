@@ -209,7 +209,8 @@ class Tokenizer:
     def language_token(self) -> int:
         """Returns the token id corresponding to the value of the `language` field"""
         if self.language is None:
-            raise ValueError("This tokenizer does not have language token configured")
+            raise ValueError(
+                "This tokenizer does not have language token configured")
 
         if token := self.special_tokens.get(f"<|{self.language}|>", None):
             return token
@@ -246,7 +247,8 @@ class Tokenizer:
         """
         symbols = list('"#()*+/:;<=>@[\\]^_`{|}~「」『』')
         symbols += (
-            "<< >> <<< >>> -- --- -( -[ (' (\" (( )) ((( ))) [[ ]] {{ }} ♪♪ ♪♪♪".split()
+            "<< >> <<< >>> -- --- -( -[ (' (\" (( )) ((( ))) [[ ]] {{ }} ♪♪ ♪♪♪".split(
+            )
         )
 
         # symbols that may be a single token or multiple tokens depending on the tokenizer.
@@ -323,7 +325,8 @@ class Tokenizer:
 
 @lru_cache(maxsize=None)
 def get_encoding(name: str = "gpt2"):
-    vocab_path = os.path.join(os.path.dirname(__file__), "assets", f"{name}.tiktoken")
+    vocab_path = os.path.join(os.path.dirname(
+        __file__), "assets", f"{name}.tiktoken")
     ranks = {
         base64.b64decode(token): int(rank)
         for token, rank in (line.split() for line in open(vocab_path) if line)

@@ -38,7 +38,8 @@ def transcribe(
     audio: Union[str, np.ndarray, torch.Tensor],
     *,
     verbose: Optional[bool] = None,
-    temperature: Union[float, Tuple[float, ...]] = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0),
+    temperature: Union[float, Tuple[float, ...]] = (
+        0.0, 0.2, 0.4, 0.6, 0.8, 1.0),
     compression_ratio_threshold: Optional[float] = 2.4,
     logprob_threshold: Optional[float] = -1.0,
     no_speech_threshold: Optional[float] = 0.6,
@@ -106,7 +107,8 @@ def transcribe(
     A dictionary containing the resulting text ("text") and segment-level details ("segments"), and
     the spoken language ("language"), which is detected when `decode_options["language"]` is None.
     """
-    dtype = torch.float16 if decode_options.get("fp16", True) else torch.float32
+    dtype = torch.float16 if decode_options.get(
+        "fp16", True) else torch.float32
     if model.device == torch.device("cpu"):
         if torch.cuda.is_available():
             warnings.warn("Performing inference on CPU when CUDA is available")
@@ -139,14 +141,17 @@ def transcribe(
 
     language: str = decode_options["language"]
     task: str = decode_options.get("task", "transcribe")
-    tokenizer = get_tokenizer(model.is_multilingual, language=language, task=task)
+    tokenizer = get_tokenizer(model.is_multilingual,
+                              language=language, task=task)
 
     if word_timestamps and task == "translate":
-        warnings.warn("Word-level timestamps on translations may not be reliable.")
+        warnings.warn(
+            "Word-level timestamps on translations may not be reliable.")
 
     def decode_with_fallback(segment: torch.Tensor) -> DecodingResult:
         temperatures = (
-            [temperature] if isinstance(temperature, (int, float)) else temperature
+            [temperature] if isinstance(
+                temperature, (int, float)) else temperature
         )
         decode_result = None
 
@@ -224,10 +229,11 @@ def transcribe(
     ) as pbar:
         while seek < content_frames:
             time_offset = float(seek * HOP_LENGTH / SAMPLE_RATE)
-            mel_segment = mel[:, seek : seek + N_FRAMES]
+            mel_segment = mel[:, seek: seek + N_FRAMES]
             segment_size = min(N_FRAMES, content_frames - seek)
             segment_duration = segment_size * HOP_LENGTH / SAMPLE_RATE
-            mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(model.device).to(dtype)
+            mel_segment = pad_or_trim(mel_segment, N_FRAMES).to(
+                model.device).to(dtype)
 
             decode_options["prompt"] = all_tokens[prompt_reset_since:]
             result: DecodingResult = decode_with_fallback(mel_segment)
@@ -250,10 +256,13 @@ def transcribe(
             previous_seek = seek
             current_segments = []
 
-            timestamp_tokens: torch.Tensor = tokens.ge(tokenizer.timestamp_begin)
-            single_timestamp_ending = timestamp_tokens[-2:].tolist() == [False, True]
+            timestamp_tokens: torch.Tensor = tokens.ge(
+                tokenizer.timestamp_begin)
+            single_timestamp_ending = timestamp_tokens[-2:].tolist() == [
+                False, True]
 
-            consecutive = torch.where(timestamp_tokens[:-1] & timestamp_tokens[1:])[0]
+            consecutive = torch.where(
+                timestamp_tokens[:-1] & timestamp_tokens[1:])[0]
             consecutive.add_(1)
             if len(consecutive) > 0:
                 # if the output contains two consecutive timestamp tokens
@@ -286,7 +295,8 @@ def transcribe(
                 else:
                     # otherwise, ignore the unfinished segment and seek to the last timestamp
                     last_timestamp_pos = (
-                        tokens[last_slice - 1].item() - tokenizer.timestamp_begin
+                        tokens[last_slice - 1].item() -
+                        tokenizer.timestamp_begin
                     )
                     seek += last_timestamp_pos * input_stride
             else:
@@ -327,7 +337,8 @@ def transcribe(
                 ]
                 if not single_timestamp_ending and len(word_end_timestamps) > 0:
                     seek_shift = round(
-                        (word_end_timestamps[-1] - time_offset) * FRAMES_PER_SECOND
+                        (word_end_timestamps[-1] -
+                         time_offset) * FRAMES_PER_SECOND
                     )
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
@@ -365,7 +376,7 @@ def transcribe(
             pbar.update(min(content_frames, seek) - previous_seek)
 
     return dict(
-        text=tokenizer.decode(all_tokens[len(initial_prompt_tokens) :]),
+        text=tokenizer.decode(all_tokens[len(initial_prompt_tokens):]),
         segments=all_segments,
         language=language,
     )
@@ -446,7 +457,8 @@ def cli():
             if args[option]:
                 parser.error(f"--{option} requires --word_timestamps True")
     if args["max_line_count"] and not args["max_line_width"]:
-        warnings.warn("--max_line_count has no effect without --max_line_width")
+        warnings.warn(
+            "--max_line_count has no effect without --max_line_width")
     writer_args = {arg: args.pop(arg) for arg in word_options}
     for audio_path in args.pop("audio"):
         result = transcribe(model, audio_path, temperature=temperature, **args)
