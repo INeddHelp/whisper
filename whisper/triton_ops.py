@@ -90,7 +90,8 @@ def median_kernel(filter_width: int):
             ]
         ),
     )
-    kernel.src = kernel.src.replace("MIDDLE_ROW_HERE", f"row{filter_width // 2}")
+    kernel.src = kernel.src.replace(
+        "MIDDLE_ROW_HERE", f"row{filter_width // 2}")
 
     return kernel
 

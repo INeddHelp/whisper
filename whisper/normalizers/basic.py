@@ -62,7 +62,8 @@ class BasicTextNormalizer:
 
     def __call__(self, s: str):
         s = s.lower()
-        s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)  # remove words between brackets
+        # remove words between brackets
+        s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)
         s = re.sub(r"\(([^)]+?)\)", "", s)  # remove words between parenthesis
         s = self.clean(s).lower()
 
