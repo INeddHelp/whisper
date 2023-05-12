@@ -254,7 +254,8 @@ class Tokenizer:
         # These are between U+2640 and U+267F miscellaneous symbols that are okay to suppress
         # in generations, and in the 3-byte UTF-8 representation they share the first two bytes.
         miscellaneous = set("♩♪♫♬♭♮♯")
-        assert all(0x2640 <= ord(c) <= 0x267F for c in miscellaneous)
+        if not all(0x2640 <= ord(c) <= 0x267F for c in miscellaneous):
+            raise AssertionError
 
         # allow hyphens "-" and single quotes "'" between words, but not at the beginning of a word
         result = {self.encoding.encode(" -")[0], self.encoding.encode(" '")[0]}

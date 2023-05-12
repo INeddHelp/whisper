@@ -313,9 +313,10 @@ class BeamSearchDecoder(TokenDecoder):
         self.max_candidates: int = round(beam_size * self.patience)
         self.finished_sequences = None
 
-        assert (
-            self.max_candidates > 0
-        ), f"Invalid beam size ({beam_size}) or patience ({patience})"
+        if (
+            self.max_candidates <= 0
+        ):
+            raise AssertionError(f"Invalid beam size ({beam_size}) or patience ({patience})")
 
     def reset(self):
         self.finished_sequences = None
@@ -365,7 +366,8 @@ class BeamSearchDecoder(TokenDecoder):
         self.inference.rearrange_kv_cache(source_indices)
 
         # add newly finished sequences to self.finished_sequences
-        assert len(self.finished_sequences) == len(finished_sequences)
+        if len(self.finished_sequences) != len(finished_sequences):
+            raise AssertionError
         for previously_finished, newly_finished in zip(
             self.finished_sequences, finished_sequences
         ):
@@ -626,8 +628,9 @@ class DecodingTask:
         elif suppress_tokens is None or len(suppress_tokens) == 0:
             suppress_tokens = []  # interpret empty string as an empty list
         else:
-            assert isinstance(
-                suppress_tokens, list), "suppress_tokens must be a list"
+            if not isinstance(
+                suppress_tokens, list):
+                raise AssertionError("suppress_tokens must be a list")
 
         suppress_tokens.extend(
             [
@@ -682,7 +685,8 @@ class DecodingTask:
         return languages, lang_probs
 
     def _main_loop(self, audio_features: Tensor, tokens: Tensor):
-        assert audio_features.shape[0] == tokens.shape[0]
+        if audio_features.shape[0] != tokens.shape[0]:
+            raise AssertionError
         n_batch = tokens.shape[0]
         sum_logprobs: Tensor = torch.zeros(
             n_batch, device=audio_features.device)
@@ -753,7 +757,8 @@ class DecodingTask:
         # reshape the tensors to have (n_audio, n_group) as the first two dimensions
         audio_features = audio_features[:: self.n_group]
         no_speech_probs = no_speech_probs[:: self.n_group]
-        assert audio_features.shape[0] == len(no_speech_probs) == n_audio
+        if not audio_features.shape[0] == len(no_speech_probs) == n_audio:
+            raise AssertionError
 
         tokens = tokens.reshape(n_audio, self.n_group, -1)
         sum_logprobs = sum_logprobs.reshape(n_audio, self.n_group)

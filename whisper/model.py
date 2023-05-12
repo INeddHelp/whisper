@@ -52,7 +52,8 @@ class Conv1d(nn.Conv1d):
 
 def sinusoids(length, channels, max_timescale=10000):
     """Returns sinusoids for positional embedding"""
-    assert channels % 2 == 0
+    if channels % 2 != 0:
+        raise AssertionError
     log_timescale_increment = np.log(max_timescale) / (channels // 2 - 1)
     inv_timescales = torch.exp(-log_timescale_increment * torch.arange(channels // 2))
     scaled_time = torch.arange(length)[:, np.newaxis] * inv_timescales[np.newaxis, :]
@@ -163,7 +164,8 @@ class AudioEncoder(nn.Module):
         x = F.gelu(self.conv2(x))
         x = x.permute(0, 2, 1)
 
-        assert x.shape[1:] == self.positional_embedding.shape, "incorrect audio shape"
+        if x.shape[1:] != self.positional_embedding.shape:
+            raise AssertionError("incorrect audio shape")
         x = (x + self.positional_embedding).to(x.dtype)
 
         for block in self.blocks:

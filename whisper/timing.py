@@ -27,9 +27,10 @@ def median_filter(x: torch.Tensor, filter_width: int):
         # `F.pad` does not support 1D or 2D inputs for reflect padding but supports 3D and 4D
         x = x[None, None, :]
 
-    assert (
+    if not (
         filter_width > 0 and filter_width % 2 == 1
-    ), "`filter_width` should be an odd number"
+    ):
+        raise AssertionError("`filter_width` should be an odd number")
 
     result = None
     x = F.pad(x, (filter_width // 2, filter_width // 2, 0, 0), mode="reflect")
@@ -109,7 +110,8 @@ def dtw_cuda(x, BLOCK_SIZE=1024):
     from .triton_ops import dtw_kernel
 
     M, N = x.shape
-    assert M < BLOCK_SIZE, f"M should be smaller than {BLOCK_SIZE=}"
+    if M >= BLOCK_SIZE:
+        raise AssertionError(f"M should be smaller than {BLOCK_SIZE=}")
 
     x_skew = (
         F.pad(x, (0, M + 1), value=np.inf).flatten()[: M * (N + M)].reshape(M, N + M)
