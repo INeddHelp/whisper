@@ -313,10 +313,10 @@ class BeamSearchDecoder(TokenDecoder):
         self.max_candidates: int = round(beam_size * self.patience)
         self.finished_sequences = None
 
-        if (
-            self.max_candidates <= 0
-        ):
-            raise AssertionError(f"Invalid beam size ({beam_size}) or patience ({patience})")
+        if self.max_candidates <= 0:
+            raise AssertionError(
+                f"Invalid beam size ({beam_size}) or patience ({patience})"
+            )
 
     def reset(self):
         self.finished_sequences = None
@@ -628,8 +628,7 @@ class DecodingTask:
         elif suppress_tokens is None or len(suppress_tokens) == 0:
             suppress_tokens = []  # interpret empty string as an empty list
         else:
-            if not isinstance(
-                suppress_tokens, list):
+            if not isinstance(suppress_tokens, list):
                 raise AssertionError("suppress_tokens must be a list")
 
         suppress_tokens.extend(

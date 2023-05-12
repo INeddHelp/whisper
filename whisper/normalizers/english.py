@@ -190,7 +190,8 @@ class EnglishNumberNormalizer:
                 skip = False
                 continue
 
-            next_is_numeric = next is not None and re.match(r"^\d+(\.\d+)?$", next)
+            next_is_numeric = next is not None and re.match(
+                r"^\d+(\.\d+)?$", next)
             has_prefix = current[0] in self.prefixes
             current_without_prefix = current[1:] if has_prefix else current
             if re.match(r"^\d+(\.\d+)?$", current_without_prefix):
@@ -434,7 +435,8 @@ class EnglishNumberNormalizer:
                 return m.string
 
         # apply currency postprocessing; "$2 and ¢7" -> "$2.07"
-        s = re.sub(r"([€£$])([0-9]+) (?:and )?¢([0-9]{1,2})\b", combine_cents, s)
+        s = re.sub(
+            r"([€£$])([0-9]+) (?:and )?¢([0-9]{1,2})\b", combine_cents, s)
         s = re.sub(r"[€£$]0.([0-9]{1,2})\b", extract_cents, s)
 
         # write "one(s)" instead of "1(s)", just for the readability
@@ -444,7 +446,8 @@ class EnglishNumberNormalizer:
 
     def __call__(self, s: str):
         s = self.preprocess(s)
-        s = " ".join(word for word in self.process_words(s.split()) if word is not None)
+        s = " ".join(word for word in self.process_words(
+            s.split()) if word is not None)
         s = self.postprocess(s)
 
         return s
@@ -529,17 +532,21 @@ class EnglishTextNormalizer:
     def __call__(self, s: str):
         s = s.lower()
 
-        s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)  # remove words between brackets
+        # remove words between brackets
+        s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)
         s = re.sub(r"\(([^)]+?)\)", "", s)  # remove words between parenthesis
         s = re.sub(self.ignore_patterns, "", s)
-        s = re.sub(r"\s+'", "'", s)  # when there's a space before an apostrophe
+        # when there's a space before an apostrophe
+        s = re.sub(r"\s+'", "'", s)
 
         for pattern, replacement in self.replacers.items():
             s = re.sub(pattern, replacement, s)
 
         s = re.sub(r"(\d),(\d)", r"\1\2", s)  # remove commas between digits
-        s = re.sub(r"\.([^0-9]|$)", r" \1", s)  # remove periods not followed by numbers
-        s = remove_symbols_and_diacritics(s, keep=".%$¢€£")  # keep numeric symbols
+        # remove periods not followed by numbers
+        s = re.sub(r"\.([^0-9]|$)", r" \1", s)
+        s = remove_symbols_and_diacritics(
+            s, keep=".%$¢€£")  # keep numeric symbols
 
         s = self.standardize_numbers(s)
         s = self.standardize_spellings(s)
@@ -548,6 +555,7 @@ class EnglishTextNormalizer:
         s = re.sub(r"[.$¢€£]([^0-9])", r" \1", s)
         s = re.sub(r"([^0-9])%", r"\1 ", s)
 
-        s = re.sub(r"\s+", " ", s)  # replace any successive whitespaces with a space
+        # replace any successive whitespaces with a space
+        s = re.sub(r"\s+", " ", s)
 
         return s
